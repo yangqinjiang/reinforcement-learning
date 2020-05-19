@@ -150,15 +150,20 @@ def main():
 
     V = policy_evaluate(MDP, V, Pi, 100)
     display_dict(V)
-    # v = compute_v(MDP, V, Pi, "第三节课")
-    # print("第三节课在当前策略下的最终价值为:{:.2f}".format(v))
+    v = compute_v(MDP, V, Pi, "第三节课")
+    print("第三节课在当前策略下的最终价值为:{:.2f}".format(v))
+    # 状态价值函数
+    V = {}
+    # 通过价值迭代得到 最优状态价值
+    V_star = value_iterate(MDP, V, 4)
+    print("-----通过价值迭代得到 最优状态价值-----")
+    display_dict(V_star)
+
+    # 验证最优行为价值
+    s, a = "第三节课", "泡吧"
+    q = compute_q(MDP, V_star, s, a)
+    print("在状态{}选择行为{}的最优价值为{:.2f}".format(s, a, q))
 
 
-    # #状态价值函数
-    # V = {}
-    # #通过价值迭代得到 最优状态价值
-    # V_star = value_iterate(MDP,V,4)
-    # print("-----通过价值迭代得到 最优状态价值-----")
-    # display_dict(V_star)
 if __name__ == '__main__':
     main()
