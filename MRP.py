@@ -1,3 +1,6 @@
+
+# 马尔科夫奖励过程
+
 import numpy as np
 num_states=7
 #{"0":"C1","1":"C2","2":"C3","3":"Pass","4":"Pub","5":"FB","6":"Sleep"}
