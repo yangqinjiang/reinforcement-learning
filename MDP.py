@@ -57,7 +57,8 @@ def compute_q(MDP, V, s, a):
     q_sa = 0
     for s_prime in S:
         q_sa += get_prob(P, s, a, s_prime) * get_value(V, s_prime)
-        q_sa = get_reward(R, s, a) + gamma * q_sa
+    
+    q_sa = get_reward(R, s, a) + gamma * q_sa
     return q_sa
 
 
