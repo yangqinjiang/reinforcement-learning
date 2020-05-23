@@ -386,16 +386,21 @@ def main():
     player = Player(A=A, display=display)
     dealer = Dealer(A=A, display=display)
     # 创建一个场景
-    arean = Arena(A=A, display=display)
+    arena = Arena(A=A, display=display)
     # 生成num个完整的对局
-    arean.play_games(dealer, player, num=200000)
+    arena.play_games(dealer, player, num=200000)
     # 策略评估
     V = {}  # 状态价值字典
     Ns = {}  # 状态被访问的次数节点
-    policy_evaluate(arean.episodes, V, Ns)  # 学习V值
+    policy_evaluate(arena.episodes, V, Ns)  # 学习V值
 
     draw_value(V, useable_ace=True, A=A)  # 绘制有可用的A时状态价值图
     draw_value(V, useable_ace=False, A=A)  # 绘制无可用的A时状态价值图
+
+  	#观察几局对局信息
+    display=True
+    player.display,dealer.display,arena.display = display,display,display
+    arena.play_games(dealer,player,num=2)
 
 
 if __name__ == '__main__':
