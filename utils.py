@@ -14,6 +14,10 @@ def str_key(*args):
 def set_dict(target_dict,value, *args):
 	target_dict[str_key(*args)] = value
 
+
+def get_dict(target_dict, *args):
+    return target_dict.get(str_key(*args),0)
+
 def set_prob(P,s,a,s1,p=1.0):#设置概率字典
 	set_dict(P,p,s,a,s1)
 
