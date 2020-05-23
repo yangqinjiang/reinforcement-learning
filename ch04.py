@@ -147,3 +147,112 @@ class Player(Gamer):
 		else:
 			action = self.A[1]
 		return action
+
+class Arena():
+	"""负责游戏管理"""
+	def __init__(self, display=None,A=None):
+		# 一副不包括大小王， 花色信息的牌
+		self.cards = ['A','2','3','4','5','6','7','8','9','10','J','Q','K']*4
+		self.card_q=Queue(maxsize=52)#洗好的牌
+		self.cards_in_pool=[] #已经用过的公开的牌
+		self.display = display
+		self.episodes = [] #产生的对局信息列表
+		self.load_cards(self.cards)#把初始状态的52张牌装入发牌器
+		self.A = A #获取行为空间
+		
+	def load_cards(self,cards):
+		'''把收集的牌洗一洗， 重新装到发牌器中
+		Args:
+			cards 要装入发牌器的多张牌 list
+		Return:
+			None
+		'''
+		shuffle(cards) #洗牌
+		for card in cards: #deque数据结构只能一个一个添加
+			self.card_q.put(card)
+
+		cards.clear()#原来的牌清空
+		return
+
+	def reward_of(self,dealer,player):
+		'''判断玩家奖励值， 附带玩家，庄家的牌点信息'''
+		dealer_points, _ = dealer.get_points()
+		player_points,useable_ace = player.get_points()
+		if player_points > 21: #玩家总分值大于 21,则玩家输
+			reward = -1
+		else:
+			if player_points > dealer_points or dealer_points > 21:
+				reward = 1  #玩家胜
+			elif player_points == dealer_points:
+				reward = 0  #和局
+			else:
+				reward = -1 # 玩家输
+
+		#输赢信息(reward),当前玩家，庄家具体的总点数， 玩家是否有可用的A
+		return reward, player_points, dealer_points,useable_ace
+
+	def serve_card_to(self,player,n=1):
+		'''给庄家或玩家发牌， 如果牌不够则将公开牌池洗一洗，重新发牌
+		Args:
+			player 一个庄家或玩家
+			n 一次连续发牌的数量
+		Return:
+			None
+		'''
+		cards = [] #将要发出的牌
+		for _ in range(n):
+			#要考虑发牌器没有牌的情况
+			if self.card_q.empty():
+				self._info("\n发牌器没牌了， 整理废牌， 重新洗牌;")
+				shuffle(self.cards_in_pool)
+				self._info("一共整理了{}张已用牌， 重新放入发牌器\n".format(len(self.cards_in_pool)))
+				assert(len(self.cards_in_pool) > 20)#确保一次能收集比较多的牌
+				self.load_cards(self.cards_in_pool)# 将收集来的用过的牌，洗好送入发牌器，重新使用
+				
+
+			#从发牌器发出一张牌
+			cards.append(self.card_q.get())
+
+
+		self._info("发了{}张牌({})给{}{}:".format(n,cards,player.role,player))
+		player.receive(cards)# 庄家或玩家接受发出的牌
+		player.cards_info()
+
+	def _info(self,message):
+		'''根据条件， 在终端输出对局信息'''
+		if self.display:
+			print(message,end="")
+
+	def recycle_cards(self,*players):
+		'''回收玩家手中的牌到公开使用过的牌池中'''
+		if len(players) == 0:
+			return
+
+		for player in players:
+			for card in player.cards:
+				self.cards_in_pool.append(card)
+			player.discharge_cards() #玩家手中不再留有这些牌
+	
+	def play_game(self,dealer,player):
+		'''玩一局21点， 生成一个状态序列以及最终奖励（中间奖励为0）
+		Args:
+			dealer/player 庄家和玩家
+		Returns:
+			tuple: episode, reward
+		'''
+		self._info("======开始新一局======\n")
+		self.serve_card_to(player,n=2)#发两张牌给玩家
+		self.serve_card_to(dealer,n=2)#发两张牌给庄家
+		episode = [] #记录一个对局信息
+		if player.policy is None:
+			self._info("玩家需要一个策略")
+			return
+
+		if dealer.policy is None:
+			self._info("庄家需要一个策略")
+			return
+		while True:
+			action = player.policy(dealer)
+			#玩家的策略产生一个行为
+			self._info("{}{}选择：{};".format(player.role, player,action))
+			pass
